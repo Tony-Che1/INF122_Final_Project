@@ -1,59 +1,61 @@
 package gmae.model;
 
+import java.util.Objects;
+
 public class Realm {
-    private static int nextRealmId = 1; // Static counter for generating unique realm IDs
-    private String realmId;
-    private String name;
-    private String description;
-    private String coordinates;
-    private LocalTimeRule localTimeRule;
 
-    public Realm(String realmName, LocalTimeRule localTimeRule) {
-        this.realmId = "R" + nextRealmId++;
-        this.name = realmName;
-        this.localTimeRule = localTimeRule;
+    private final String id;
+    private final String name;
+    private final String description;
+    private final String coordinates;
+    private final LocalTimeRule localTimeRule;
+
+    public Realm(String id, String name) {
+        this(id, name, "", "", null);
     }
 
-    public Realm(String realmName, String description, String coordinates, LocalTimeRule localTimeRule) {
-        this.realmId = "R" + nextRealmId++;
-        this.name = realmName;
-        this.description = description;
-        this.coordinates = coordinates;
-        this.localTimeRule = localTimeRule;
+    public Realm(String id, String name, String description) {
+        this(id, name, description, "", null);
     }
 
-    public Realm(String realmName, String description, LocalTimeRule localTimeRule) {
-        this.realmId = "R" + nextRealmId++;
-        this.name = realmName;
-        this.description = description;
+    public Realm(String id, String name, String description, String coordinates, LocalTimeRule localTimeRule) {
+        if (id == null || id.isBlank()) {
+            throw new IllegalArgumentException("Realm id must not be blank");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Realm name must not be blank");
+        }
+
+        this.id = id;
+        this.name = name;
+        this.description = description == null ? "" : description;
+        this.coordinates = coordinates == null ? "" : coordinates;
         this.localTimeRule = localTimeRule;
     }
 
     public DateTime convertFromWorldClock(DateTime worldTime) {
-        // Implementation for calculating the local time in the realm based on the world time and the local time rule
+        if (worldTime == null) {
+            throw new IllegalArgumentException("World time must not be null");
+        }
+        if (localTimeRule == null) {
+            return worldTime;
+        }
         return localTimeRule.applyRule(worldTime);
     }
 
     public DateTime convertToWorldClock(DateTime localTime) {
-        // Implementation for calculating the world time based on the local time in the realm and the local time rule
-        // This would involve reversing the application of the local time rule to get back to world time
-        // TO DO
-        return localTime; // Placeholder return statement, replace with actual conversion logic
+        if (localTime == null) {
+            throw new IllegalArgumentException("Local time must not be null");
+        }
+        // Placeholder until reverse-conversion logic is implemented
+        return localTime;
     }
 
-    // ==================================
-    // Getters and setters for the fields
-    // ==================================
-
-    public String getRealmId() {
-        return realmId;
+    public String getId() {
+        return id;
     }
 
-    public LocalTimeRule getLocalTimeRule() {
-        return localTimeRule;
-    }
-
-    public String getRealmName() {
+    public String getName() {
         return name;
     }
 
@@ -63,5 +65,26 @@ public class Realm {
 
     public String getCoordinates() {
         return coordinates;
+    }
+
+    public LocalTimeRule getLocalTimeRule() {
+        return localTimeRule;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Realm realm)) return false;
+        return id.equals(realm.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }

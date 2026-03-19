@@ -20,8 +20,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Separator;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -47,6 +49,7 @@ public class GameView {
     private VBox p2InfoBox;
     private VBox actionPanel;
     private VBox logBox;
+    private GridPane mapGrid;
 
     public GameView(Player p1, Player p2, MiniAdventure adventure, Runnable onBackToMenu) {
         this.player1 = p1;
@@ -99,7 +102,28 @@ public class GameView {
         Label logTitle = new Label("Game Log");
         logTitle.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #888;");
 
-        VBox centerBox = new VBox(10, actionPanel, new Separator(), logTitle, logScroll);
+        // Map grid
+        mapGrid = new GridPane();
+        mapGrid.setHgap(3);
+        mapGrid.setVgap(3);
+        mapGrid.setPadding(new Insets(6));
+        mapGrid.setStyle("-fx-background-color: #e0e0e0; -fx-background-radius: 6;");
+
+        Label mapTitle = new Label("Map");
+        mapTitle.setStyle("-fx-font-size: 12; -fx-font-weight: bold; -fx-text-fill: #888;");
+
+        Label legendP1 = new Label("\u25A0 Player 1");
+        legendP1.setStyle("-fx-font-size: 10; -fx-text-fill: #2a7ae2;");
+        Label legendP2 = new Label("\u25A0 Player 2");
+        legendP2.setStyle("-fx-font-size: 10; -fx-text-fill: #e2522a;");
+        Label legendBoth = new Label("\u25A0 Both");
+        legendBoth.setStyle("-fx-font-size: 10; -fx-text-fill: #9b59b6;");
+        HBox legend = new HBox(8, legendP1, legendP2, legendBoth);
+
+        VBox mapBox = new VBox(4, mapTitle, mapGrid, legend);
+        mapBox.setAlignment(Pos.TOP_LEFT);
+
+        VBox centerBox = new VBox(10, actionPanel, new Separator(), mapBox, new Separator(), logTitle, logScroll);
         centerBox.setPadding(new Insets(0, 14, 0, 14));
         HBox.setHgrow(centerBox, Priority.ALWAYS);
 
@@ -125,6 +149,50 @@ public class GameView {
         refreshRoundInfo();
         refreshPlayerInfo(p1InfoBox, player1, "Player 1", "#2a7ae2");
         refreshPlayerInfo(p2InfoBox, player2, "Player 2", "#e2522a");
+        refreshMapGrid();
+    }
+
+    private void refreshMapGrid() {
+        mapGrid.getChildren().clear();
+        var map = adventure.getRealmMap();
+        RealmView p1Pos = player1.getPosition();
+        RealmView p2Pos = player2.getPosition();
+
+        for (int row = 0; row < map.getRows(); row++) {
+            for (int col = 0; col < map.getCols(); col++) {
+                RealmView realm = map.getRealmAt(row, col);
+                Label cell = new Label();
+                cell.setPrefSize(100, 52);
+                cell.setAlignment(Pos.CENTER);
+                cell.setWrapText(true);
+
+                if (realm == null) {
+                    cell.setStyle("-fx-background-color: #c8c8c8; -fx-background-radius: 4;");
+                } else {
+                    boolean p1Here = realm.equals(p1Pos);
+                    boolean p2Here = realm.equals(p2Pos);
+                    String bg, fg;
+                    if (p1Here && p2Here) {
+                        bg = "#9b59b6"; fg = "white";
+                    } else if (p1Here) {
+                        bg = "#2a7ae2"; fg = "white";
+                    } else if (p2Here) {
+                        bg = "#e2522a"; fg = "white";
+                    } else {
+                        bg = "#ffffff"; fg = "#333";
+                    }
+                    cell.setText(realm.getName());
+                    cell.setStyle("-fx-font-size: 11; -fx-text-fill: " + fg +
+                            "; -fx-background-color: " + bg +
+                            "; -fx-background-radius: 4;" +
+                            " -fx-border-color: #aaa; -fx-border-radius: 4; -fx-border-width: 1;" +
+                            " -fx-alignment: center;");
+                    Tooltip tip = new Tooltip(realm.getName() + "\n" + realm.getDescription());
+                    Tooltip.install(cell, tip);
+                }
+                mapGrid.add(cell, col, row);
+            }
+        }
     }
 
     private void refreshRoundInfo() {

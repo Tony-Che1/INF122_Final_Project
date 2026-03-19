@@ -38,7 +38,7 @@ public class GMAE_APP extends Application {
 
     public void showMainMenu() {
         MenuController ctrl = new MenuController(this, profileManager);
-        primaryStage.setScene(new Scene(ctrl.buildView(), 900, 650));
+        primaryStage.setScene(new Scene(ctrl.buildView(), 1280, 800));
     }
 
     public void showGame(Player p1, Player p2, MiniAdventure adventure) {
@@ -53,7 +53,7 @@ public class GMAE_APP extends Application {
         }
 
         GameView gameView = new GameView(p1, p2, freshAdventure, this::showMainMenu);
-        primaryStage.setScene(new Scene(gameView.buildView(), 900, 650));
+        primaryStage.setScene(new Scene(gameView.buildView(), 1280, 800));
     }
 
     @Override

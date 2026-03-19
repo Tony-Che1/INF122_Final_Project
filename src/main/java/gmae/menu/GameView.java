@@ -63,14 +63,22 @@ public class GameView {
         root.setPadding(new Insets(16));
         root.setStyle("-fx-font-family: 'System';");
 
-        // Top bar: adventure name + round info
+        // Top bar: adventure name + round info + back button
         Label title = new Label(adventure.getName());
         title.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
         roundLabel = new Label();
         roundLabel.setStyle("-fx-font-size: 13; -fx-text-fill: #666;");
         statusLabel = new Label();
         statusLabel.setStyle("-fx-font-size: 13; -fx-font-weight: bold; -fx-text-fill: #2a7ae2;");
-        VBox topBox = new VBox(4, title, roundLabel, statusLabel);
+
+        Button backBtn = new Button("⬅ Back to Menu");
+        backBtn.setStyle("-fx-font-size: 12; -fx-padding: 6 16;");
+        backBtn.setOnAction(e -> onBackToMenu.run());
+
+        VBox titleBox = new VBox(4, title, roundLabel, statusLabel);
+        titleBox.setAlignment(Pos.CENTER_LEFT);
+        HBox topBox = new HBox(titleBox, backBtn);
+        HBox.setHgrow(titleBox, Priority.ALWAYS);
         topBox.setAlignment(Pos.CENTER_LEFT);
         topBox.setPadding(new Insets(0, 0, 12, 0));
         root.setTop(topBox);
@@ -90,13 +98,14 @@ public class GameView {
         // Center: action panel + log
         actionPanel = new VBox(8);
         actionPanel.setPadding(new Insets(10));
+        actionPanel.setMinHeight(180);
         actionPanel.setStyle("-fx-background-color: #f8f8f8; -fx-background-radius: 8;");
 
         logBox = new VBox(4);
         logBox.setPadding(new Insets(8));
         ScrollPane logScroll = new ScrollPane(logBox);
         logScroll.setFitToWidth(true);
-        logScroll.setPrefHeight(160);
+        logScroll.setPrefHeight(280);
         logScroll.setStyle("-fx-background: white; -fx-background-color: white;");
 
         Label logTitle = new Label("Game Log");
@@ -319,16 +328,18 @@ public class GameView {
         actionPanel.getChildren().add(prompt);
 
         List<RealmView> neighbors = adventure.getRealmMap().neighborsOf(currentPlayer.getPosition());
+        FlowPane buttons = new FlowPane(8, 8);
         for (RealmView realm : neighbors) {
             String label = realm.getName();
             if (adventure instanceof RelicHuntAdventure rha) {
                 label += " (relics: " + rha.getRelicsInRealm(realm) + ")";
             }
             Button btn = new Button(label);
-            btn.setStyle("-fx-font-size: 12; -fx-padding: 4 12;");
+            btn.setStyle("-fx-font-size: 12; -fx-padding: 6 16;");
             btn.setOnAction(e -> applyAndAdvance(Action.of(ActionType.MOVE, "target", realm)));
-            actionPanel.getChildren().add(btn);
+            buttons.getChildren().add(btn);
         }
+        actionPanel.getChildren().add(buttons);
         addCancelButton();
     }
 
@@ -345,16 +356,18 @@ public class GameView {
         actionPanel.getChildren().add(prompt);
 
         int playerGold = cta.getGoldOf(currentPlayer);
+        FlowPane buttons = new FlowPane(8, 8);
         for (String itemName : market.getItemNames()) {
             int price = market.getBuyPrice(itemName);
             if (price > 0 && playerGold >= price) {
                 int maxQty = Math.min(3, playerGold / price);
                 Button btn = new Button(itemName + " (" + price + "g each)");
-                btn.setStyle("-fx-font-size: 12; -fx-padding: 4 12;");
+                btn.setStyle("-fx-font-size: 12; -fx-padding: 6 16;");
                 btn.setOnAction(e -> showQuantityPicker(itemName, maxQty, ActionType.BUY));
-                actionPanel.getChildren().add(btn);
+                buttons.getChildren().add(btn);
             }
         }
+        actionPanel.getChildren().add(buttons);
         addCancelButton();
     }
 
@@ -374,17 +387,19 @@ public class GameView {
                 .map(ItemAdapter::getName)
                 .collect(Collectors.groupingBy(n -> n, Collectors.counting()));
 
+        FlowPane buttons = new FlowPane(8, 8);
         for (Map.Entry<String, Long> entry : owned.entrySet()) {
             String name = entry.getKey();
             int count = entry.getValue().intValue();
             int sellPrice = market.getSellPrice(name);
             if (sellPrice > 0) {
                 Button btn = new Button(name + " x" + count + " (sell: " + sellPrice + "g each)");
-                btn.setStyle("-fx-font-size: 12; -fx-padding: 4 12;");
+                btn.setStyle("-fx-font-size: 12; -fx-padding: 6 16;");
                 btn.setOnAction(e -> showQuantityPicker(name, count, ActionType.SELL));
-                actionPanel.getChildren().add(btn);
+                buttons.getChildren().add(btn);
             }
         }
+        actionPanel.getChildren().add(buttons);
         addCancelButton();
     }
 

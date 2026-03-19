@@ -4,6 +4,7 @@ import gmae.adventure.AdventureRegistry;
 import gmae.adventure.MiniAdventure;
 import gmae.adventures.CaravanTradeAdventure;
 import gmae.adventures.RelicHuntAdventure;
+import gmae.menu.GameView;
 import gmae.menu.MenuController;
 import gmae.model.Player;
 import gmae.profile.ProfileManager;
@@ -41,6 +42,18 @@ public class GMAE_APP extends Application {
     }
 
     public void showGame(Player p1, Player p2, MiniAdventure adventure) {
+        // Create a fresh adventure instance so the map is regenerated for each game
+        MiniAdventure freshAdventure;
+        if (adventure instanceof CaravanTradeAdventure) {
+            freshAdventure = new CaravanTradeAdventure();
+        } else if (adventure instanceof RelicHuntAdventure) {
+            freshAdventure = new RelicHuntAdventure();
+        } else {
+            freshAdventure = adventure;
+        }
+
+        GameView gameView = new GameView(p1, p2, freshAdventure, this::showMainMenu);
+        primaryStage.setScene(new Scene(gameView.buildView(), 900, 650));
     }
 
     @Override
